@@ -9,7 +9,7 @@ const notificationRoutes = require('./routes/notification_api');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const appUrl = 'https://harshar715.herokuapp.com';
+const appUrl = 'https://to-do-app-harshar715.herokuapp.com/';
 app.set("appUrl", appUrl);
 
 app.use(cors());
