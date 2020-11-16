@@ -5,6 +5,7 @@ const webpush = require('web-push');
 const schedule = require('node-schedule');
 const task = require('../models/task_model');
 const user = require('../models/user_model');
+const notification = require('../models/notification_model');
 
 const vapidKeys = {
     publicKey: "BHtjmZQzFy2Bakk0W2J8-bSjKc2C8-u5Xc1Lp8udcHK3vzXl52I4tWGCWTJBpkhYsNblnAjswqdE1haEyv9RLQU",
