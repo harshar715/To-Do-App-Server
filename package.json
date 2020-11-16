@@ -1,0 +1,28 @@
+{
+  "name": "to-do-app-server",
+  "version": "1.0.0",
+  "description": "to-do-app-server",
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.10.14",
+    "node-schedule": "^1.3.2",
+    "web-push": "^3.4.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harshar715/To-Do-App-Server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harshar715/To-Do-App-Server/issues"
+  },
+  "homepage": "https://github.com/harshar715/To-Do-App-Server#readme"
+}
