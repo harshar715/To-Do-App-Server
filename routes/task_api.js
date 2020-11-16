@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const webpush = require('web-push');
 const schedule = require('node-schedule');
 const task = require('../models/task_model');
+const user = require('../models/user_model');
 
 const vapidKeys = {
     publicKey: "BHtjmZQzFy2Bakk0W2J8-bSjKc2C8-u5Xc1Lp8udcHK3vzXl52I4tWGCWTJBpkhYsNblnAjswqdE1haEyv9RLQU",
@@ -72,9 +73,8 @@ router.post('/postDefaultTasks', function (req, res, next) {
                     });
                     let oneDay = new Date(taskReg.taskDeadline);
                     oneDay.setDate(oneDay.getDate() - 1);
-
+                    console.log(oneDay);
                     schedule.scheduleJob(oneDay, function () {
-
                         let query1 = { _id: decoded.data._id }
                         user.findOne(query1).select({ notifications: 1 }).lean().then(user1 => {
                             let arr = user1.notifications;
@@ -91,7 +91,7 @@ router.post('/postDefaultTasks', function (req, res, next) {
                             }
                             user.findOneAndUpdate(query1, myUser).then(user2 => { });
                         });
-                        notification.findOne(query1).select({ subscriptionObj: 1 }).lean().then(notif1 => {
+                        notification.findOne({ userId: decoded.data._id }).select({ subscriptionObj: 1 }).lean().then(notif1 => {
                             if (notif1.subscriptionObj.length > 0) {
                                 const notificationPayload = {
                                     notification: {
@@ -140,7 +140,7 @@ router.post('/postDefaultTasks', function (req, res, next) {
                             }
                             user.findOneAndUpdate(query1, myUser).then(user2 => { });
                         });
-                        notification.findOne(query1).select({ subscriptionObj: 1 }).lean().then(notif1 => {
+                        notification.findOne({ userId: decoded.data._id }).select({ subscriptionObj: 1 }).lean().then(notif1 => {
                             if (notif1.subscriptionObj.length > 0) {
                                 const notificationPayload = {
                                     notification: {
