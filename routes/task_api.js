@@ -80,8 +80,8 @@ router.post('/postDefaultTasks', function (req, res, next) {
                         user.findOne(query1).select({ notifications: 1 }).lean().then(user1 => {
                             let arr = user1.notifications;
                             const notif = {
-                                title: 'Your Task - ' + '<b>' + taskReg.taskTitle + '</b>' + ' is about to get scheduled in 24hrs',
-                                shortTitle: 'Your Task - ' + taskReg.taskTitle + ' is about to get scheduled in 24hrs',
+                                title: 'Your Task - ' + '<b>' + taskReg.taskTitle + '</b>' + ' is about to get schedule in 24hrs',
+                                shortTitle: 'Your Task - ' + taskReg.taskTitle + ' is about to get schedule in 24hrs',
                                 targetId: taskReg._id,
                                 targetName: taskReg.taskTitle,
                                 targetUrl: '/task/' + taskReg._id
@@ -97,8 +97,8 @@ router.post('/postDefaultTasks', function (req, res, next) {
                                 const notificationPayload = {
                                     notification: {
                                         title: 'Alert From To-Do-App',
-                                        body: 'Your Task - ' + taskReg.taskTitle + ' is about to get scheduled in 24hrs',
-                                        vibrate: [100, 50, 100],
+                                        body: 'Your Task - ' + taskReg.taskTitle + ' is about to get schedule in 24hrs',
+                                        vibrate: [200, 100, 200, 100, 200, 100, 200],
                                         data: {
                                             url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
                                             dateOfArrival: Date.now(),
@@ -129,8 +129,8 @@ router.post('/postDefaultTasks', function (req, res, next) {
                         user.findOne(query1).select({ notifications: 1 }).lean().then(user1 => {
                             let arr = user1.notifications;
                             const notif = {
-                                title: 'Your Task - ' + '<b>' + taskReg.taskTitle + '</b>' + ' is about to get scheduled in 60min',
-                                shortTitle: 'Your Task - ' + taskReg.taskTitle + ' is about to get scheduled in 60min',
+                                title: 'Your Task - ' + '<b>' + taskReg.taskTitle + '</b>' + ' is about to get schedule in 60min',
+                                shortTitle: 'Your Task - ' + taskReg.taskTitle + ' is about to get schedule in 60min',
                                 targetId: taskReg._id,
                                 targetName: taskReg.taskTitle,
                                 targetUrl: '/task/' + taskReg._id
@@ -146,8 +146,8 @@ router.post('/postDefaultTasks', function (req, res, next) {
                                 const notificationPayload = {
                                     notification: {
                                         title: 'Alert From To-Do-App',
-                                        body: 'Your Task - ' + taskReg.taskTitle + ' is about to get scheduled in 60min',
-                                        vibrate: [100, 50, 100],
+                                        body: 'Your Task - ' + taskReg.taskTitle + ' is about to get schedule in 60min',
+                                        vibrate: [200, 100, 200, 100, 200, 100, 200],
                                         data: {
                                             url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
                                             dateOfArrival: Date.now(),
@@ -191,69 +191,89 @@ router.post('/postRecurringTasks', function (req, res, next) {
         const token = req.header('Authorization').replace('Bearer ', '');
         const decoded = jwt.verify(token, 'thisistodoapp');
         if (decoded.data && token) {
+            res.status(200).json({
+                message: 'Task Registration Successful',
+                data: [],
+                status: 200
+            });
+            let rule = new schedule.RecurrenceRule();
+            rule.dayOfWeek = req.body.daysOfWeek;
+            rule.hour = 0;
+            rule.minute = 0;
+            schedule.scheduleJob(rule, function () {
+                const d = new Date();
+                let myTask = {
+                    taskUserId: decoded.data._id,
+                    taskUserName: decoded.data.userName,
+                    taskTitle: req.body.taskTitle,
+                    taskDiscription: req.body.taskDiscription,
+                    taskDeadline: new Date(d.getFullYear(), d.getMonth(), d.getDate(), req.body.hours, req.body.minutes)
+                }
+                task.create(myTask).then(function (taskReg) {
+                    if (taskReg) {
+
+                        let oneHour = new Date(taskReg.taskDeadline);
+                        oneHour.setHours(oneHour.getHours() - 1);
+
+                        schedule.scheduleJob(oneHour, function () {
+
+                            let query1 = { _id: decoded.data._id }
+                            user.findOne(query1).select({ notifications: 1 }).lean().then(user1 => {
+                                let arr = user1.notifications;
+                                const notif = {
+                                    title: 'Your Task - ' + '<b>' + taskReg.taskTitle + '</b>' + ' is about to get schedule in 60min',
+                                    shortTitle: 'Your Task - ' + taskReg.taskTitle + ' is about to get schedule in 60min',
+                                    targetId: taskReg._id,
+                                    targetName: taskReg.taskTitle,
+                                    targetUrl: '/task/' + taskReg._id
+                                };
+                                arr.push(notif);
+                                let myUser = {
+                                    notifications: arr
+                                }
+                                user.findOneAndUpdate(query1, myUser).then(user2 => { });
+                            });
+                            notification.findOne({ userId: decoded.data._id }).select({ subscriptionObj: 1 }).lean().then(notif1 => {
+                                if (notif1.subscriptionObj.length > 0) {
+                                    const notificationPayload = {
+                                        notification: {
+                                            title: 'Alert From To-Do-App',
+                                            body: 'Your Task - ' + taskReg.taskTitle + ' is about to get schedule in 60min',
+                                            vibrate: [200, 100, 200, 100, 200, 100, 200],
+                                            data: {
+                                                url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
+                                                dateOfArrival: Date.now(),
+                                                primaryKey: 1
+                                            },
+                                            url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
+                                            actions: [{
+                                                action: "explore",
+                                                url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
+                                                title: "View"
+                                            }]
+                                        }
+                                    };
+                                    notif1.subscriptionObj.forEach(res => {
+                                        webpush.sendNotification(JSON.parse(res), JSON.stringify(notificationPayload))
+                                    });
+                                }
+                            })
+
+                        });
+                    }
+                }).catch(next)
+            });
+
+            const d = new Date();
             let myTask = {
                 taskUserId: decoded.data._id,
                 taskUserName: decoded.data.userName,
                 taskTitle: req.body.taskTitle,
                 taskDiscription: req.body.taskDiscription,
-                taskDeadline: req.bosy.taskDeadline
+                taskDeadline: new Date(d.getFullYear(), d.getMonth(), d.getDate(), req.body.hours, req.body.minutes)
             }
             task.create(myTask).then(function (taskReg) {
                 if (taskReg) {
-                    res.status(200).json({
-                        message: 'Task Registration Successful',
-                        data: taskReg,
-                        status: 200
-                    });
-                    let oneDay = new Date(taskReg.taskDeadline);
-                    oneDay.setDate(oneDay.getDate() - 1);
-
-                    schedule.scheduleJob(oneDay, function () {
-
-                        let query1 = { _id: decoded.data._id }
-                        user.findOne(query1).select({ notifications: 1 }).lean().then(user1 => {
-                            let arr = user1.notifications;
-                            const notif = {
-                                title: 'Your Task - ' + '<b>' + taskReg.taskTitle + '</b>' + ' is about to get scheduled in 24hrs',
-                                shortTitle: 'Your Task - ' + taskReg.taskTitle + ' is about to get scheduled in 24hrs',
-                                targetId: taskReg._id,
-                                targetName: taskReg.taskTitle,
-                                targetUrl: '/task/' + taskReg._id
-                            };
-                            arr.push(notif);
-                            let myUser = {
-                                notifications: arr
-                            }
-                            user.findOneAndUpdate(query1, myUser).then(user2 => { });
-                        });
-                        notification.findOne(query1).select({ subscriptionObj: 1 }).lean().then(notif1 => {
-                            if (notif1.subscriptionObj.length > 0) {
-                                const notificationPayload = {
-                                    notification: {
-                                        title: 'Alert From To-Do-App',
-                                        body: 'Your Task - ' + taskReg.taskTitle + ' is about to get scheduled in 24hrs',
-                                        vibrate: [100, 50, 100],
-                                        data: {
-                                            url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
-                                            dateOfArrival: Date.now(),
-                                            primaryKey: 1
-                                        },
-                                        url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
-                                        actions: [{
-                                            action: "explore",
-                                            url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
-                                            title: "View"
-                                        }]
-                                    }
-                                };
-                                notif1.subscriptionObj.forEach(res => {
-                                    webpush.sendNotification(JSON.parse(res), JSON.stringify(notificationPayload))
-                                });
-                            }
-                        })
-
-                    });
-
                     let oneHour = new Date(taskReg.taskDeadline);
                     oneHour.setHours(oneHour.getHours() - 1);
 
@@ -263,8 +283,8 @@ router.post('/postRecurringTasks', function (req, res, next) {
                         user.findOne(query1).select({ notifications: 1 }).lean().then(user1 => {
                             let arr = user1.notifications;
                             const notif = {
-                                title: 'Your Task - ' + '<b>' + taskReg.taskTitle + '</b>' + ' is about to get scheduled in 60min',
-                                shortTitle: 'Your Task - ' + taskReg.taskTitle + ' is about to get scheduled in 60min',
+                                title: 'Your Task - ' + '<b>' + taskReg.taskTitle + '</b>' + ' is about to get schedule in 60min',
+                                shortTitle: 'Your Task - ' + taskReg.taskTitle + ' is about to get schedule in 60min',
                                 targetId: taskReg._id,
                                 targetName: taskReg.taskTitle,
                                 targetUrl: '/task/' + taskReg._id
@@ -275,13 +295,13 @@ router.post('/postRecurringTasks', function (req, res, next) {
                             }
                             user.findOneAndUpdate(query1, myUser).then(user2 => { });
                         });
-                        notification.findOne(query1).select({ subscriptionObj: 1 }).lean().then(notif1 => {
+                        notification.findOne({ userId: decoded.data._id }).select({ subscriptionObj: 1 }).lean().then(notif1 => {
                             if (notif1.subscriptionObj.length > 0) {
                                 const notificationPayload = {
                                     notification: {
                                         title: 'Alert From To-Do-App',
-                                        body: 'Your Task - ' + taskReg.taskTitle + ' is about to get scheduled in 60min',
-                                        vibrate: [100, 50, 100],
+                                        body: 'Your Task - ' + taskReg.taskTitle + ' is about to get schedule in 60min',
+                                        vibrate: [200, 100, 200, 100, 200, 100, 200],
                                         data: {
                                             url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
                                             dateOfArrival: Date.now(),
@@ -304,6 +324,7 @@ router.post('/postRecurringTasks', function (req, res, next) {
                     });
                 }
             }).catch(next)
+
         } else {
             res.status(401).json({
                 message: 'Unauthorized',

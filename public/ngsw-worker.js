@@ -1854,11 +1854,11 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             this.loggedInvalidOnlyIfCachedRequest = false;
             // The install event is triggered when the service worker is first installed.
             this.scope.addEventListener('install', (event) => {
+                event.waitUntil(caches.open(CACHE));
                 // SW code updates are separate from application updates, so code updates are
                 // almost as straightforward as restarting the SW. Because of this, it's always
                 // safe to skip waiting until application tabs are closed, and activate the new
                 // SW version immediately.
-                event.waitUntil(caches.open(CACHE));
                 // event.waitUntil(this.scope.skipWaiting());
             });
             // The activate event is triggered when this version of the service worker is
