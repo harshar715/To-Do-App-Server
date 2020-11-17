@@ -191,23 +191,21 @@ router.post('/postRecurringTasks', function (req, res, next) {
         const token = req.header('Authorization').replace('Bearer ', '');
         const decoded = jwt.verify(token, 'thisistodoapp');
         if (decoded.data && token) {
-            res.status(200).json({
-                message: 'Task Registration Successful',
-                data: [],
-                status: 200
-            });
             let rule = new schedule.RecurrenceRule();
             rule.dayOfWeek = req.body.daysOfWeek;
             rule.hour = 0;
             rule.minute = 0;
             schedule.scheduleJob(rule, function () {
-                const d = new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"});
+                const d = new Date();
+                let nd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), req.body.hours, req.body.minutes);
+                nd.setHours(nd.getHours() - 5);
+                nd.setMinutes(nd.getMinutes() - 30);
                 let myTask = {
                     taskUserId: decoded.data._id,
                     taskUserName: decoded.data.userName,
                     taskTitle: req.body.taskTitle,
                     taskDiscription: req.body.taskDiscription,
-                    taskDeadline: new Date(d.getFullYear(), d.getMonth(), d.getDate(), req.body.hours, req.body.minutes)
+                    taskDeadline: nd
                 }
                 task.create(myTask).then(function (taskReg) {
                     if (taskReg) {
@@ -242,7 +240,7 @@ router.post('/postRecurringTasks', function (req, res, next) {
                                             vibrate: [200, 100, 200, 100, 200, 100, 200],
                                             data: {
                                                 url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
-                                                dateOfArrival: new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}),
+                                                dateOfArrival: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
                                                 primaryKey: 1
                                             },
                                             url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
@@ -264,16 +262,24 @@ router.post('/postRecurringTasks', function (req, res, next) {
                 }).catch(next)
             });
 
-            const d = new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"});
+            const d = new Date();
+            let nd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), req.body.hours, req.body.minutes);
+            nd.setHours(nd.getHours() - 5);
+            nd.setMinutes(nd.getMinutes() - 30);
             let myTask = {
                 taskUserId: decoded.data._id,
                 taskUserName: decoded.data.userName,
                 taskTitle: req.body.taskTitle,
                 taskDiscription: req.body.taskDiscription,
-                taskDeadline: new Date(d.getFullYear(), d.getMonth(), d.getDate(), req.body.hours, req.body.minutes)
+                taskDeadline: nd
             }
             task.create(myTask).then(function (taskReg) {
                 if (taskReg) {
+                    res.status(200).json({
+                        message: 'Task Registration Successful',
+                        data: taskReg,
+                        status: 200
+                    });
                     let oneHour = new Date(taskReg.taskDeadline);
                     oneHour.setHours(oneHour.getHours() - 1);
 
