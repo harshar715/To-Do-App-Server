@@ -150,7 +150,7 @@ router.post('/postDefaultTasks', function (req, res, next) {
                                         vibrate: [200, 100, 200, 100, 200, 100, 200],
                                         data: {
                                             url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
-                                            dateOfArrival: Date.now(),
+                                            dateOfArrival: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
                                             primaryKey: 1
                                         },
                                         url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
@@ -201,7 +201,7 @@ router.post('/postRecurringTasks', function (req, res, next) {
             rule.hour = 0;
             rule.minute = 0;
             schedule.scheduleJob(rule, function () {
-                const d = new Date();
+                const d = new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"});
                 let myTask = {
                     taskUserId: decoded.data._id,
                     taskUserName: decoded.data.userName,
@@ -242,7 +242,7 @@ router.post('/postRecurringTasks', function (req, res, next) {
                                             vibrate: [200, 100, 200, 100, 200, 100, 200],
                                             data: {
                                                 url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
-                                                dateOfArrival: Date.now(),
+                                                dateOfArrival: new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}),
                                                 primaryKey: 1
                                             },
                                             url: req.app.get("appUrl") + '/#/task/' + taskReg._id,
@@ -264,7 +264,7 @@ router.post('/postRecurringTasks', function (req, res, next) {
                 }).catch(next)
             });
 
-            const d = new Date();
+            const d = new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"});
             let myTask = {
                 taskUserId: decoded.data._id,
                 taskUserName: decoded.data.userName,
@@ -364,10 +364,10 @@ router.get('/getTodayTasks', function (req, res, next) {
                         });
                     }
                 } else {
-                    res.status(500).json({
+                    res.status(200).json({
                         message: 'No Data Found ',
                         data: '',
-                        status: 500
+                        status: 200
                     });
                 }
             }).catch(next)
@@ -410,10 +410,10 @@ router.get('/getTomorrowTasks', function (req, res, next) {
                         });
                     }
                 } else {
-                    res.status(500).json({
+                    res.status(200).json({
                         message: 'No Data Found ',
                         data: '',
-                        status: 500
+                        status: 200
                     });
                 }
             }).catch(next)
@@ -456,10 +456,10 @@ router.get('/getUpcomingTasks', function (req, res, next) {
                         });
                     }
                 } else {
-                    res.status(500).json({
+                    res.status(200).json({
                         message: 'No Data Found ',
                         data: '',
-                        status: 500
+                        status: 200
                     });
                 }
             }).catch(next)
